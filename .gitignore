@@ -1,0 +1,8 @@
+terraform.tfvars
+.terraform
+venv
+terraform.tfstate*
+.vscode/
+.DS_Store
+*egg-info
+__pycache__
