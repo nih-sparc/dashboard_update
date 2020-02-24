@@ -1,7 +1,7 @@
 from blackfynn import Blackfynn
 import blackfynn
 import requests, datetime
-import sys
+import sys,os
 import time
 import json
 
@@ -298,14 +298,15 @@ def update(bf, ds):
     update_run = ds.get_model('Update_Run')
     update_run.create_record({'name':'Dashboard Update','status':now})
 
-
 def lambda_handler(event, context):
+    DATASET = os.environ['DASHBOARD_DATASET_NAME']
+
     bf = Blackfynn()
-    ds = bf.get_dataset('SPARC Datasets')
+    ds = bf.get_dataset(DATASET)
 
     update(bf, ds)
 
     return {
         'statusCode': 200,
-        'body': json.dumps('Hello from Lambda!')
+        'body': json.dumps('Successfully updated the SPARC dashboard')
     }

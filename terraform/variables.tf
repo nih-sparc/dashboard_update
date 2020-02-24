@@ -18,9 +18,9 @@ variable "service_name" {
 
 variable "version_number" {}
 
-variable "bucket" {
-  default = "sparc-tools"
-}
+variable "bucket" {}
+
+variable "dataset_name" {}
 
 variable "api_loc" {
   default = "https://api.blackfynn.io"

@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 
-BUILD_NUMBER="2"
+BUILD_NUMBER="3"
 PYTHON_BINARY="/usr/bin/python3.7"
 PYTHON_VIRTUALENV="venv"
 

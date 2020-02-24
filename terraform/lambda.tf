@@ -15,6 +15,7 @@ resource "aws_lambda_function" "lambda_function_dashboard_update" {
       BLACKFYNN_API_LOC = "${var.api_loc}"
       BLACKFYNN_LOCAL_DIR = "/tmp/blackfynn"
       BLACKFYNN_USE_CACHE = 0
+      DASHBOARD_DATASET_NAME = "${var.dataset_name}"
     }
   }
 }
