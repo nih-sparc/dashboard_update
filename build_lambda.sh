@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 
-BUILD_NUMBER="3"
+BUILD_NUMBER="5"
 PYTHON_BINARY="/usr/bin/python3.7"
 PYTHON_VIRTUALENV="venv"
 
@@ -10,12 +10,12 @@ VERSION="${BUILD_NUMBER}"
 PACKAGE_NAME="${FUNCTION_NAME}-${VERSION}.zip"
 
 
-build_lambda_template() { 
+build_lambda_template() {
   python3 -m venv ${PYTHON_VIRTUALENV}
   source ${PYTHON_VIRTUALENV}/bin/activate
-  
-  pip3 install blackfynn  
-  
+
+  pip3 install blackfynn
+
   cd ${WORKING_DIR}/${PYTHON_VIRTUALENV}/lib/python3.7/site-packages/
   zip -r9 ${WORKING_DIR}/${PACKAGE_NAME} *
 

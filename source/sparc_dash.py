@@ -1,4 +1,6 @@
-from blackfynn import Blackfynn
+from blackfynn.models import ModelPropertyEnumType, BaseCollection, ModelPropertyType
+from blackfynn import Blackfynn, ModelProperty, LinkedModelProperty
+from datetime import datetime
 import blackfynn
 import requests, datetime
 import sys,os
@@ -6,11 +8,14 @@ import time
 import json
 
 def sizeof_fmt(num, suffix='B'):
-    for unit in ['','K','M','G','T','P','E','Z']:
-        if abs(num) < 1024.0:
-            return "%3.1f%s%s" % (num, unit, suffix)
-        num /= 1024.0
-    return "%.1f%s%s" % (num, 'Y', suffix)
+
+    gb = 1024*1024*1024
+    return float(num)/gb
+    # for unit in ['','K','M','G','T','P','E','Z']:
+    #     if abs(num) < 1024.0:
+    #         return "%3.1f%s%s" % (num, unit, suffix)
+    #     num /= 1024.0
+    # return "%.1f%s%s" % (num, 'Y', suffix)
 
 def getAwardById(awards, id):
     for index, element in enumerate(awards):
@@ -47,22 +52,30 @@ def create_models(ds):
     except:
         dataset_schema = [
             ModelProperty('name', title=True, display_name='Name'),
-            ModelProperty('status', data_type=str, display_name='Status'),
-            ModelProperty('error_index', data_type=int, display_name='Error Index'),
             ModelProperty('owner',  data_type=str, display_name='Owner'),
-            ModelProperty('owner_email',  data_type=str, display_name='Owner email'),
+            ModelProperty('owner_email', display_name='Owner email',data_type=ModelPropertyType(
+                    data_type=str, format='email')),
             ModelProperty('sparc_award',  data_type=str, display_name='SPARC Award'),
-            ModelProperty('number_of_files',  data_type=int, display_name='Number of files'),
-            ModelProperty('total_size',  data_type=str, display_name='Total size'),
-            ModelProperty('date_created', data_type='date', display_name='Dataset Created'),
-            ModelProperty('doi',  data_type=str, display_name='DOI'),
+            ModelProperty('date_created', data_type='date', display_name='Submission Date'),
             ModelProperty('first_published',  data_type='date', display_name='First published'),
+            ModelProperty('status', data_type=str, display_name='Status'),
+            ModelProperty('blackfynn_url',  display_name='Blackfynn URL',data_type=ModelPropertyType(
+                    data_type=str, format='url')),
+            ModelProperty('discover_url', display_name='Discover URL', data_type=ModelPropertyType(
+                    data_type=str, format='url')),
+            ModelProperty('error_index', data_type=int, display_name='Error Index'),
+            ModelProperty('number_of_files',  data_type=int, display_name='Number of files'),
+            ModelProperty('number_of_folders',  data_type=int, display_name='Number of folders'),
+            ModelProperty('total_size', display_name='Total size',data_type=ModelPropertyType(
+                    data_type=float, unit='GB' )),
+            ModelProperty('doi', display_name='DOI', data_type=ModelPropertyType(
+                    data_type=str, format='url')),
+            ModelProperty('last_updated',  data_type='date', display_name='Last Updated'),
             ModelProperty('last_published',  data_type='date', display_name='Last published'),
+            ModelProperty('status_log', display_name='Status Log', data_type=ModelPropertyEnumType(
+                    data_type=str, multi_select=True)),
             ModelProperty('dataset_id',  data_type=str, display_name='Dataset ID'),
             ModelProperty('discover_id',  data_type=int, display_name='Discover ID'),
-            ModelProperty('blackfynn_url',  data_type=str, display_name='Blackfynn URL'),
-            ModelProperty('discover_url',  data_type=str, display_name='Discover URL'),
-            ModelProperty('portal_url',  data_type=str, display_name='Portal URL'),
             ModelProperty('curation_priority',  data_type=str, display_name='NIH Priority')
         ]
         model = ds.create_model('SPARC_Dataset', schema = dataset_schema)
@@ -160,11 +173,6 @@ def getSummary(bf):
             print('excepted')
             continue
 
-        
-        
-        # print("--- %s seconds ---" % (time.time() - start_time))
-
-
         print(i)
         i=i+1
 
@@ -183,6 +191,7 @@ def getSummary(bf):
         ds_summary['total_size'] = sizeof_fmt(sz)
     #     ds_summary['teams'] = ds.team_collaborators()
     #     ds_summary['users'] = ds.user_collaborators()
+        ds_summary['last_updated'] = ds.updated_at
         owner = ds.owner()
         ds_summary['owner'] = owner.name 
         ds_summary['owner_email'] = owner.email 
@@ -203,7 +212,20 @@ def getSummary(bf):
         if records:
             record = records[0]
             ds_summary['error_index'] = int(record.values['errorIndex'])
+            ds_summary['number_of_folders'] = record.values['hasNumberOfDirectories']
         
+
+        # Get Status_Log
+        status_log = ds.status_log().entries
+        str_values = []
+        if status_log:
+            for r in status_log:
+                str_values.append('{} {} - {} - {}'.format(r.user.first_name,
+                    r.user.last_name,
+                    r.updated_at.strftime("%m/%d/%Y"),
+                    r.status.name))
+
+        ds_summary['status_log'] = str_values
 
         #Get Award
         award = None
@@ -227,12 +249,11 @@ def getSummary(bf):
                     ds_summary['last_published'] = datetime.datetime.strptime(publish_info.last_published, '%Y-%m-%dT%H:%M:%S.%fZ').strftime("%m/%d/%Y")
 
                 ds_summary['discover_id'] = publish_info.dataset_id
-                ds_summary['doi'] = publish_info.doi
+                ds_summary['doi'] = 'https://doi.org/{}'.format(publish_info.doi)
                 
                 ds_summary['discover_url'] = u"https://discover.blackfynn.io/datasets/{}".format(ds_summary['discover_id'])
                 
                 discover_api = u"https://api.blackfynn.io/discover/datasets/{}/versions".format(ds_summary['discover_id'])
-                ds_summary['portal_url'] = ''
                 r = requests.get(url = discover_api)
                 data = r.json()
                 try:
