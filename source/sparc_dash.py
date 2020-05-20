@@ -158,6 +158,7 @@ def populateAwardsWithInfo(ds):
             print('Could not get NIH Award')
 
 def getSummary(bf):
+    print('dkfhdkjfhkjdfhk')
     myDatasets = bf.datasets()
     ds_summaries = []
     i = 0
@@ -232,12 +233,17 @@ def getSummary(bf):
         try:
             summary = ds.get_model('award')
             awards = summary.get_all()
+            if awards:
+                award = awards[0]
+                ds_summary['sparc_award'] = award.values['award_id']
+            else:
+                ds_summary['sparc_award'] = ''
+
         except:
+            ds_summary['sparc_award'] = ''
             pass  
 
-        if awards:
-            award = awards[0]
-            ds_summary['sparc_award'] = award.values['award_id']
+        
 
 
         try:
@@ -305,12 +311,13 @@ def update(bf, ds):
                     new_award['award_id'] =  record.values['sparc_award']
                     naw = awards.create_record(new_award)
                     award_recs.append(naw)
+                    record.relate_to(naw, relationship_type='part_of')
+                
             else:
                 print('update record')
-                naw = award_recs[award_index]     
+                naw = award_recs[award_index]    
+                record.relate_to(naw, relationship_type='part_of') 
         
-            record.relate_to(naw, relationship_type='part_of')
-
     # Update Award Records with info from NIH Reporter
     populateAwardsWithInfo(ds)
 
