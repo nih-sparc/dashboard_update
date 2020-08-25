@@ -11,6 +11,7 @@ def cli():
 
 @click.command()
 def clear():
+    print('Clearing')
     out = sparc_dash.clearRecords(ds)
 
 

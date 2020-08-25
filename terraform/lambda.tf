@@ -6,7 +6,7 @@ resource "aws_lambda_function" "lambda_function_dashboard_update" {
   s3_bucket        = "${var.bucket}"
   s3_key           = "${var.service_name}/${var.service_name}-${var.version_number}.zip"
   s3_object_version = "${data.aws_s3_bucket_object.s3_bucket_object.version_id}"
-  timeout          = 500
+  timeout          = 900
 
   environment {
     variables = {
@@ -16,6 +16,7 @@ resource "aws_lambda_function" "lambda_function_dashboard_update" {
       BLACKFYNN_LOCAL_DIR = "/tmp/blackfynn"
       BLACKFYNN_USE_CACHE = 0
       DASHBOARD_DATASET_NAME = "${var.dataset_name}"
+      SCICRUNCH_API_KEY = "${var.scicrunch_api_key}"
     }
   }
 }

@@ -22,6 +22,8 @@ variable "bucket" {}
 
 variable "dataset_name" {}
 
+variable "scicrunch_api_key" {}
+
 variable "api_loc" {
   default = "https://api.blackfynn.io"
 }
